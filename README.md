@@ -29,4 +29,46 @@ Project ini dibangun menggunakan:
 ---
 
 ## 📁 Struktur Folder
+kata-hari-ini/
+├── app/
+│ ├── page.tsx // Halaman utama
+├── components/
+│ └── QuoteCard.tsx // Komponen tampilan kutipan
+├── data/
+│ └── quotes.ts // Daftar kutipan harian
+├── styles/
+│ └── globals.css // Styling global
+├── public/
+├── README.md
+
+
+---
+
+## 🤝 Kontribusi
+
+Proyek ini masih dalam tahap pengembangan pribadi.  
+Ke depan, fitur akan terus bertambah, dan semua kontribusi/ide/kritik sangat terbuka!  
+Silakan buat issue atau pull request ✨
+
+---
+
+## 📌 Tujuan Proyek
+
+> “Gue gak pengen hidup gue cuma kerja-pulang-tidur.  
+Gue pengen buat sesuatu yang bisa berarti buat diri sendiri dan orang lain—walau hanya lewat satu kalimat tiap hari.”
+
+---
+
+## 📄 Lisensi
+
+MIT License. Silakan gunakan, ubah, dan bagikan—dengan penuh rasa 🙏
+
+---
+
+## ❤️ Terima Kasih
+
+Untuk semua orang yang pernah merasa kosong, overthinking, atau hanya butuh satu kalimat untuk bertahan.  
+Proyek ini untuk lo.
+
+
 
