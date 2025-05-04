@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 export default function QuoteCard({ quote }) {
     const [isVisible, setIsVisible] = useState(false);
     
+    // Pastikan komponen dapat bekerja dengan format dari database dan format lama
+    const quoteText = quote.text || quote.content;
+    const quoteAuthor = quote.author || 'Anonim';
+    
     // Animasi untuk menampilkan kutipan saat komponen dimuat
     useEffect(() => {
         setIsVisible(true);
@@ -30,11 +34,11 @@ export default function QuoteCard({ quote }) {
                 
                 <blockquote className="relative z-10">
                     <div className="font-playfair text-xl sm:text-2xl md:text-3xl text-gray-800 leading-relaxed mb-6">
-                        "{quote.text}"
+                        "{quoteText}"
                     </div>
                     <footer className="mt-6 text-right">
                         <cite className="text-indigo-600 font-medium not-italic">
-                            — {quote.author || 'Anonim'}
+                            — {quoteAuthor}
                         </cite>
                     </footer>
                 </blockquote>

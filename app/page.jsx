@@ -3,22 +3,64 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { getQuoteOfTheDay } from '@/lib/getQuoteOfTheDay';
+import { supabase } from '@/lib/supabase'; // Pastikan ini sudah diimpor
 import QuoteCard from "@/component/QuoteCard";
 import ShareButtons from '@/component/ShareButtons';
 import ThemeToggle from '@/component/ThemeToggle';
+import SubmitQuoteForm from '@/component/SubmitQuoteForm';
 
 export default function Home() {
-    const [quote, setQuote] = useState(getQuoteOfTheDay());
+    // Gunakan state dasar untuk kutipan
+    const [quote, setQuote] = useState({
+        text: "Memuat kutipan...",
+        author: ""
+    });
     const [savedQuotes, setSavedQuotes] = useState([]);
     const [showSaved, setShowSaved] = useState(false);
+    const [showSubmitForm, setShowSubmitForm] = useState(false);
     
-    // Load saved quotes from localStorage on component mount
+    // Fetch kutipan dan load saved quotes
     useEffect(() => {
+        // Load saved quotes dari localStorage
         const saved = localStorage.getItem('savedQuotes');
         if (saved) {
             setSavedQuotes(JSON.parse(saved));
         }
+        
+        // Fetch kutipan dari Supabase
+        async function fetchQuotes() {
+            try {
+                const { data, error } = await supabase
+                    .from('submitted_quotes')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    // Pilih kutipan berdasarkan tanggal
+                    const today = new Date();
+                    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+                    const index = dayOfYear % data.length;
+                    
+                    // Set quote dari database
+                    setQuote({
+                        text: data[index].content,
+                        author: data[index].author
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching quotes:', error);
+                // Jika fetch gagal, gunakan kutipan default
+                setQuote({
+                    text: "Hidup adalah perjalanan yang penuh pembelajaran. Nikmati prosesnya.",
+                    author: "Anonim"
+                });
+            }
+        }
+        
+        fetchQuotes();
     }, []);
     
     // Function to save current quote
@@ -42,12 +84,13 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center pt-12 pb-24 p-6">
+            {/* Header */}
             <header className="w-full max-w-4xl flex justify-between items-center mb-12">
                 <div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
                         Kata Hari Ini
                     </h1>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">
                         Inspirasi untuk jiwamu
                     </p>
                 </div>
@@ -55,15 +98,10 @@ export default function Home() {
             </header>
 
             <div className="max-w-xl w-full space-y-10">
-                <div className="relative">
-                    <div className="absolute -top-6 -left-6 opacity-30">
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6.5 10.5C5.34 10.5 4.25 10.03 3.44 9.19C2.62 8.34 2.15 7.25 2.15 6.09C2.15 4.94 2.62 3.84 3.46 3C4.31 2.16 5.41 1.69 6.57 1.69C8.87 1.69 10.74 3.55 10.74 5.85C10.74 8.15 8.87 10.03 6.57 10.03C6.57 10.03 6.5 10.5 6.5 10.5ZM17.69 10.5C16.53 10.5 15.44 10.03 14.62 9.19C13.81 8.34 13.34 7.25 13.34 6.09C13.34 4.94 13.81 3.84 14.65 3C15.5 2.16 16.59 1.69 17.76 1.69C20.06 1.69 21.93 3.55 21.93 5.85C21.93 8.15 20.06 10.03 17.76 10.03C17.69 10.03 17.69 10.5 17.69 10.5ZM6.5 22.31C5.34 22.31 4.25 21.84 3.44 21C2.62 20.16 2.15 19.06 2.15 17.91C2.15 16.75 2.62 15.66 3.46 14.84C4.31 14 5.41 13.53 6.57 13.53C8.87 13.53 10.74 15.4 10.74 17.7C10.74 20 8.87 21.87 6.57 21.87C6.5 21.87 6.5 22.31 6.5 22.31ZM17.69 22.31C16.53 22.31 15.44 21.84 14.62 21C13.81 20.16 13.34 19.06 13.34 17.91C13.34 16.75 13.81 15.66 14.65 14.84C15.5 14 16.59 13.53 17.76 13.53C20.06 13.53 21.93 15.4 21.93 17.7C21.93 20 20.06 21.87 17.76 21.87C17.69 21.87 17.69 22.31 17.69 22.31Z" fill="currentColor" />
-                        </svg>
-                    </div>
-                    <QuoteCard quote={quote} />
-                </div>
+                {/* Quote Card */}
+                <QuoteCard quote={quote} />
 
+                {/* Share buttons dan Save button */}
                 <div className="flex flex-col space-y-6">
                     <div className="flex justify-between items-center">
                         <ShareButtons quote={quote} />
@@ -74,8 +112,8 @@ export default function Home() {
                             disabled={isQuoteSaved}
                             className={`flex items-center justify-center p-2 rounded-full transition-colors ${
                                 isQuoteSaved 
-                                    ? 'bg-indigo-100 text-indigo-400 cursor-not-allowed' 
-                                    : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                                    ? 'bg-indigo-100 text-indigo-400 cursor-not-allowed dark:bg-indigo-900 dark:text-indigo-600' 
+                                    : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-400'
                             }`}
                             title={isQuoteSaved ? "Kutipan sudah tersimpan" : "Simpan kutipan ini"}
                         >
@@ -85,17 +123,31 @@ export default function Home() {
                         </motion.button>
                     </div>
                     
-                    <div className="w-full">                        
+                    {/* Koleksi dan Submit buttons */}
+                    <div className="w-full flex space-x-3">                        
                         <motion.button
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => setShowSaved(!showSaved)}
-                            className="w-full py-3 bg-white text-indigo-600 font-medium rounded-lg shadow-md hover:shadow-lg border border-indigo-100 transition-all flex items-center justify-center space-x-2"
+                            className="flex-1 py-3 bg-white text-indigo-600 font-medium rounded-lg shadow-md hover:shadow-lg border border-indigo-100 transition-all flex items-center justify-center space-x-2 dark:bg-gray-800 dark:text-indigo-400 dark:border-indigo-900"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                             </svg>
                             <span>Koleksi Kutipan</span>
+                        </motion.button>
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => setShowSubmitForm(!showSubmitForm)}
+                            className="flex-1 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg border border-indigo-700 transition-all flex items-center justify-center space-x-2 dark:bg-indigo-700 dark:hover:bg-indigo-600"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Kirim Kutipan</span>
                         </motion.button>
                     </div>
                 </div>
@@ -106,21 +158,22 @@ export default function Home() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="bg-white rounded-lg shadow-md p-6 space-y-4"
+                        className="bg-white rounded-lg shadow-md p-6 space-y-4 dark:bg-gray-800"
                     >
-                        <h2 className="text-xl font-semibold text-indigo-800">Kutipan Tersimpan</h2>
+                        {/* Konten koleksi kutipan... */}
+                        <h2 className="text-xl font-semibold text-indigo-800 dark:text-indigo-300">Kutipan Tersimpan</h2>
                         
                         {savedQuotes.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">
+                            <p className="text-gray-500 text-center py-4 dark:text-gray-400">
                                 Belum ada kutipan tersimpan. Simpan kutipan favorit Anda dengan klik ikon bookmark.
                             </p>
                         ) : (
                             <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
                                 {savedQuotes.map((savedQuote, index) => (
-                                    <div key={index} className="border-b border-gray-100 pb-3 last:border-0">
-                                        <p className="text-gray-800 italic">"{savedQuote.text}"</p>
+                                    <div key={index} className="border-b border-gray-100 pb-3 last:border-0 dark:border-gray-700">
+                                        <p className="text-gray-800 italic dark:text-gray-200">"{savedQuote.text}"</p>
                                         <div className="flex justify-between items-center mt-2">
-                                            <p className="text-indigo-600 text-sm">— {savedQuote.author || 'Anonim'}</p>
+                                            <p className="text-indigo-600 text-sm dark:text-indigo-400">— {savedQuote.author || 'Anonim'}</p>
                                             <button
                                                 onClick={() => {
                                                     const updatedQuotes = [...savedQuotes];
@@ -128,7 +181,7 @@ export default function Home() {
                                                     setSavedQuotes(updatedQuotes);
                                                     localStorage.setItem('savedQuotes', JSON.stringify(updatedQuotes));
                                                 }}
-                                                className="text-red-400 hover:text-red-600 transition-colors"
+                                                className="text-red-400 hover:text-red-600 transition-colors dark:text-red-500 dark:hover:text-red-400"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -142,12 +195,23 @@ export default function Home() {
                         )}
                     </motion.div>
                 )}
+                
+                {/* Form Submit Kutipan */}
+                {showSubmitForm && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                    >
+                        <SubmitQuoteForm />
+                    </motion.div>
+                )}
             </div>
             
             {/* Notifikasi */}
             <div 
                 id="notification"
-                className="fixed bottom-0 left-0 right-0 bg-green-500 text-white py-3 text-center transform translate-y-full transition-transform duration-300 ease-in-out"
+                className="fixed bottom-0 left-0 right-0 bg-green-500 dark:bg-green-600 text-white py-3 text-center transform translate-y-full transition-transform duration-300 ease-in-out"
             >
                 Kutipan berhasil disimpan ke koleksi Anda!
             </div>
