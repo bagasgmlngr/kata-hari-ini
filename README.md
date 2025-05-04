@@ -4,6 +4,7 @@
 
 Proyek ini dibuat sebagai ruang personal sekaligus publik, agar siapa pun bisa merasa terhubung lewat kata.
 
+https://www.kata-hari-ini.site/
 ---
 
 ## 🚀 Fitur Utama
