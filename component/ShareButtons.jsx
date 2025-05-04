@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from 'next-themes';
 
 export default function ShareButtons({ quote }) {
   const [activeTab, setActiveTab] = useState('social'); // 'social' atau 'copy'
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Pastikan komponen dapat bekerja dengan format dari database dan format lama
   const quoteText = quote.text || quote.content;
@@ -49,13 +56,18 @@ export default function ShareButtons({ quote }) {
     }, 2000);
   };
   
+  // Jika belum mounted, tampilkan placeholder sederhana untuk menghindari hydration mismatch
+  if (!mounted) {
+    return <div className="h-16 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>;
+  }
+  
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 dark-transition">
       {/* Tab Selector */}
-      <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg w-fit">
+      <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg w-fit transition-colors duration-200">
         <button
           onClick={() => setActiveTab('social')}
-          className={`px-4 py-2 text-sm rounded-md transition-colors ${
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
             activeTab === 'social'
               ? 'bg-white dark:bg-gray-600 shadow-sm text-indigo-600 dark:text-indigo-300'
               : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300'
@@ -65,7 +77,7 @@ export default function ShareButtons({ quote }) {
         </button>
         <button
           onClick={() => setActiveTab('copy')}
-          className={`px-4 py-2 text-sm rounded-md transition-colors ${
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
             activeTab === 'copy'
               ? 'bg-white dark:bg-gray-600 shadow-sm text-indigo-600 dark:text-indigo-300'
               : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300'
@@ -130,10 +142,10 @@ export default function ShareButtons({ quote }) {
       
       {/* Copy Options */}
       {activeTab === 'copy' && (
-        <div className="space-y-3">
+        <div className="space-y-3 dark-transition">
           <button
             onClick={() => handleCopy('text')}
-            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-between"
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 flex items-center justify-between"
           >
             <div className="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -147,7 +159,7 @@ export default function ShareButtons({ quote }) {
           
           <button
             onClick={() => handleCopy('markdown')}
-            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-between"
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 flex items-center justify-between"
           >
             <div className="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -160,7 +172,7 @@ export default function ShareButtons({ quote }) {
           
           <button
             onClick={() => handleCopy('html')}
-            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-between"
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 flex items-center justify-between"
           >
             <div className="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

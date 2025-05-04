@@ -1,3 +1,6 @@
+// Perubahan pada app/page.jsx
+// Tambahkan state dan fungsi randomize
+
 'use client';
 
 import Link from 'next/link';
@@ -18,6 +21,8 @@ export default function Home() {
     const [savedQuotes, setSavedQuotes] = useState([]);
     const [showSaved, setShowSaved] = useState(false);
     const [showSubmitForm, setShowSubmitForm] = useState(false);
+    const [allQuotes, setAllQuotes] = useState([]); // State untuk menyimpan semua quotes
+    const [isLoading, setIsLoading] = useState(false); // State untuk loading indicator
     
     // Fetch kutipan dan load saved quotes
     useEffect(() => {
@@ -30,6 +35,7 @@ export default function Home() {
         // Fetch kutipan dari Supabase
         async function fetchQuotes() {
             try {
+                setIsLoading(true);
                 const { data, error } = await supabase
                     .from('submitted_quotes')
                     .select('*')
@@ -39,6 +45,9 @@ export default function Home() {
                 if (error) throw error;
                 
                 if (data && data.length > 0) {
+                    // Simpan semua quotes untuk digunakan dalam fitur random
+                    setAllQuotes(data);
+                    
                     // Pilih kutipan berdasarkan tanggal
                     const today = new Date();
                     const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
@@ -53,15 +62,34 @@ export default function Home() {
             } catch (error) {
                 console.error('Error fetching quotes:', error);
                 // Jika fetch gagal, gunakan kutipan default
-                setQuote({
-                    text: "Hidup adalah perjalanan yang penuh pembelajaran. Nikmati prosesnya.",
-                    author: "Anonim"
-                });
+            } finally {
+                setIsLoading(false);
             }
         }
         
         fetchQuotes();
     }, []);
+    
+    // Function untuk mendapatkan quote secara acak
+    const getRandomQuote = () => {
+        if (allQuotes.length === 0) return;
+        
+        setIsLoading(true);
+        
+        // Untuk animasi loading
+        setTimeout(() => {
+            // Pilih quotes secara acak
+            const randomIndex = Math.floor(Math.random() * allQuotes.length);
+            const randomQuote = allQuotes[randomIndex];
+            
+            setQuote({
+                text: randomQuote.content,
+                author: randomQuote.author
+            });
+            
+            setIsLoading(false);
+        }, 300); // Delay kecil untuk efek visual
+    };
     
     // Function to save current quote
     const saveQuote = () => {
@@ -99,7 +127,30 @@ export default function Home() {
 
             <div className="max-w-xl w-full space-y-10">
                 {/* Quote Card */}
-                <QuoteCard quote={quote} />
+                <QuoteCard quote={quote} isLoading={isLoading} />
+
+                {/* Randomize Button - Tambahan baru */}
+                <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={getRandomQuote}
+                    disabled={isLoading || allQuotes.length === 0}
+                    className={`w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 ${
+                        (isLoading || allQuotes.length === 0) ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
+                    }`}
+                >
+                    {isLoading ? (
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                    )}
+                    <span>{isLoading ? 'Mengacak...' : 'Acak Kutipan Lain'}</span>
+                </motion.button>
 
                 {/* Share buttons dan Save button */}
                 <div className="flex flex-col space-y-6">

@@ -2,6 +2,7 @@
 import './globals.css';
 import { Nunito, Playfair_Display } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
+import { ThemeProvider } from '@/component/ThemeProvider';
 
 // Font sans-serif untuk teks umum
 const nunito = Nunito({ 
@@ -30,15 +31,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" className={`${nunito.variable} ${playfair.variable}`}>
-      <body className={`${nunito.className} antialiased bg-gradient-to-b from-blue-50 to-indigo-100 min-h-screen`}>
-        <div className="max-w-5xl mx-auto px-4">
-          {children}
-        </div>
-        <footer className="py-6 text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} Kata Hari Ini. Semua hak cipta dilindungi.</p>
-        </footer>
-        <Analytics />
+    <html lang="id" className={`${nunito.variable} ${playfair.variable}`} suppressHydrationWarning>
+      <body className={`${nunito.className} antialiased min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950 text-gray-800 dark:text-gray-200 transition-colors duration-200`}>
+        <ThemeProvider>
+          <div className="max-w-5xl mx-auto px-4">
+            {children}
+          </div>
+          <footer className="py-6 text-center text-gray-500 dark:text-gray-400 text-sm">
+            <p>© {new Date().getFullYear()} Kata Hari Ini. Semua hak cipta dilindungi.</p>
+          </footer>
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   );
